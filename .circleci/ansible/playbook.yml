@@ -1,4 +1,4 @@
-- name: Configuring new EC2 instances
+- name: Configuring newly created EC2 instances
   hosts: all
   user: ubuntu
   roles:

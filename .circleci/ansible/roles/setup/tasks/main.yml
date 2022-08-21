@@ -14,7 +14,7 @@
   shell: |
     curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash - && sudo apt-get install -y nodejs
 
-- name: "Install zip"
+- name: "Install zip utility."
   apt:
     name: [ "zip", "unzip" ]
     state: latest
