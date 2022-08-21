@@ -35,6 +35,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - run: npm init
       - run: npm i --prefix backend
       - run: npm run lint --prefix backend
       - persist_to_workspace:
@@ -47,6 +48,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - run: npm init
       - run: npm i --prefix frontend
       - run: npm run lint --prefix frontend
       - persist_to_workspace:
@@ -79,7 +81,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - run: npm audit fix --audit-level=critical 
+      - run: npm audit fix --audit-level=critical --force
       - run: npm audit --audit-level=critical --prefix backend
 
   analyze_frontend:
@@ -87,7 +89,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - run: npm audit fix --audit-level=critical 
+      - run: npm audit fix --audit-level=critical --force
       - run: npm audit --audit-level=critical --prefix frontend
 
   deploy_backend_infrastructure:
