@@ -320,7 +320,7 @@ jobs:
 
             cd .circleci/ansible
             cat inventory.txt
-            ansible-playbook -i inventory.txt depl
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
@@ -439,33 +439,21 @@ workflows:
           filters:
             branches:
               only: [ main ]
-      - run_db_migrations_for_backend:
-          requires:
-            - deploy_backend_infrastructure
       - Configure_Server:
           requires:
-            - run_db_migrations_for_backend
+            - deploy_backend_infrastructure
+      - run_db_migrations_for_backend:
+          requires:
+            - Configure_Server
       - deploy_frontend:
           requires:
             - run_db_migrations_for_backend
       - deploy_Backend:
           requires:
             - run_db_migrations_for_backend
-            
-      # - package_frontend_artifact:
-      #     requires:
-      #       - deploy_frontend_infrastructure
-      #       - run_db_migrations_for_backend
-      # - deploy_frontend_artifact:
-      #     requires:
-      #       - package_frontend_artifact
-      # - smoke_test_backend:
-      #     requires:
-      #       - deploy_backend_artifact
-      # - smoke_test_frontend:
-      #     requires:
-      #       - deploy_frontend_artifact
-      # - deploy_cloudfront_infrastructure:
-      #     requires:
-      #       - smoke_test_backend
-      #       - smoke_test_frontend
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudfront-update]
