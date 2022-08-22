@@ -268,10 +268,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            BACKEND_AWS_PUBLIC_IP=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text)
+            BACKEND_AWS_PUBLIC_IP=`cat .circleci/outputs/backend_url.txt`
             echo "API_URL=http://${BACKEND_AWS_PUBLIC_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
@@ -283,7 +280,7 @@ jobs:
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
-#############################################################################
+
   deploy_Backend:
     docker:
       - image: cimg/base:stable
@@ -324,20 +321,16 @@ jobs:
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
-
+#############################################################################
   smoke_test_frontend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
-      - attach_workspace:
-          at: ~/
+      - checkout
+      - install_awscli
+      - install_nodejs
       - run:
-          name: Install dependencies
-          command: |
-            apk add --update curl
-            pip install awscli
-      - run:
-          name: Package frontend app
+          name: Frontend Smoke test.
           command: |
             if curl -s http://udapeople-prod-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.eu-central-1.amazonaws.com/ | grep "Welcome"
             then
@@ -349,29 +342,19 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
 
-
-
   smoke_test_backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
-      - attach_workspace:
-          at: ~/
+      - checkout
+      - install_awscli
+      - install_nodejs
       - run:
-          name: Install dependencies
-          command: |
-            apk add --update curl
-            pip install awscli
-      - run:
-          name: Test backend app.
+          name: Backend Smoke test.
           command: |
             API_URL=`cat .circleci/outputs/backend_url.txt`
             echo $API_URL
             curl -s $API_URL/api/status
-      - destroy_environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - undo_migrations
-
 
   deploy_cloudfront_infrastructure:
     docker:
@@ -451,8 +434,10 @@ workflows:
       - deploy_Backend:
           requires:
             - Configure_Server
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - smoke_test_frontend:
+          requires: [deploy_frontend]
+      - smoke_test_backend:
+          requires: [deploy_Backend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
