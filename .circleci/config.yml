@@ -30,7 +30,7 @@ commands:
             fi
 
 jobs:
-  build-frontend:
+  build_frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -47,7 +47,7 @@ jobs:
           paths: [frontend/node_modules]
           key: frontend-build
 
-  build-backend:
+  build_backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
