@@ -379,10 +379,10 @@ workflows:
             - build_frontend
       - analyze_backend:
           requires:
-            - test_backend
+            - build_backend
       - analyze_frontend:
           requires:
-            - test_frontend
+            - build_frontend
       - deploy_backend_infrastructure:
           requires:
             - analyze_backend
