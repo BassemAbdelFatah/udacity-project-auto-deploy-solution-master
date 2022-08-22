@@ -18,8 +18,6 @@
   roles:
     # - role: weareinteractive.environment
     #   become: true
-    # - role: deploy_backend
-    #   become: true
     - role: setup
       become: true
     - role: configure_node_exporter
