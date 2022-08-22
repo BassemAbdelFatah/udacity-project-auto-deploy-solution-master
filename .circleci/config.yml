@@ -89,16 +89,17 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-    #  - run: npm audit --audit-level=critical --prefix backend
-    #  - run: npm audit fix --audit-level=critical --force
+      - run: npm audit fix --audit-level=critical --force
+      - run: npm audit --audit-level=critical --prefix backend
 
   analyze_frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-    #  - run: npm audit --audit-level=critical --prefix frontend
-    #  - run: npm audit fix --audit-level=critical --force
+      - run: npm audit fix --audit-level=critical --force
+      - run: npm audit --audit-level=critical --prefix frontend
+
 
   deploy_backend_infrastructure:
     docker:
@@ -381,20 +382,20 @@ workflows:
       - deploy_backend_artifact:
           requires:
             - run_db_migrations_for_backend
-      - package_frontend_artifact:
-          requires:
-            - deploy_frontend_infrastructure
-            - run_db_migrations_for_backend
-      - deploy_frontend_artifact:
-          requires:
-            - package_frontend_artifact
-      - smoke_test_backend:
-          requires:
-            - deploy_backend_artifact
-      - smoke_test_frontend:
-          requires:
-            - deploy_frontend_artifact
-      - deploy_cloudfront_infrastructure:
-          requires:
-            - smoke_test_backend
-            - smoke_test_frontend
+      # - package_frontend_artifact:
+      #     requires:
+      #       - deploy_frontend_infrastructure
+      #       - run_db_migrations_for_backend
+      # - deploy_frontend_artifact:
+      #     requires:
+      #       - package_frontend_artifact
+      # - smoke_test_backend:
+      #     requires:
+      #       - deploy_backend_artifact
+      # - smoke_test_frontend:
+      #     requires:
+      #       - deploy_frontend_artifact
+      # - deploy_cloudfront_infrastructure:
+      #     requires:
+      #       - smoke_test_backend
+      #       - smoke_test_frontend
