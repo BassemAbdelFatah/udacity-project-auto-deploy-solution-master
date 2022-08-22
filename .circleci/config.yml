@@ -52,8 +52,6 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            npm i
-            npm install typescript@rc
             npm install
             npm run build
             export API_URL=`cat .circleci/outputs/backend_url.txt`
