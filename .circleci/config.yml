@@ -72,12 +72,9 @@ jobs:
       - run:
           name: Back-end build
           command: |
-            cd backend
-            npm install
+            cd ~/project/backend
+            npm i
             npm run build
-      - run:
-          name: Move build
-          command: |
             cd dist
             cp ../package.json .
             zip -rq dist.zip *
