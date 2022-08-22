@@ -98,10 +98,6 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            -  project/.circleci/ansible/roles/deploy_backend/files/dist.zip
  
   test_backend:
     docker:
