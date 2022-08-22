@@ -196,7 +196,7 @@ jobs:
           name: Deploy the frontend infrastructure using cloudformation
           command: |
             aws cloudformation deploy \
-              --template-file .circleci/cloudformation/frontend_infrastructure.yml \
+              --template-file .circleci/files/frontend.yml \
               --parameter-overrides ID="prod-${CIRCLE_WORKFLOW_ID:0:7}" \
               --stack-name udapeople-frontend-prod-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy_environment:
@@ -283,6 +283,47 @@ jobs:
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
+#############################################################################
+  deploy_Backend:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - install_nodejs
+      - install_ansible
+      - add_ssh_keys:
+          fingerprints: ["b3:0e:47:83:13:96:58:60:ea:3c:1d:cd:7b:67:aa:ef"]
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Install dependencies
+          command: |
+            cd backend
+            npm install
+      - run: 
+          name: Package Back-end
+          command: |
+            cd backend
+            npm run build
+            tar -czf artifact.tar.gz dist/* package*
+            cd ..
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy_backend/files
+      - run: 
+          name: Deploy Back-end
+          command: |
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity(.ts,.js)
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt depl
+      - destroy_environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - undo_migrations
 
   smoke_test_frontend:
     docker:
@@ -307,7 +348,7 @@ jobs:
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
-#############################################################################
+
 
 
   smoke_test_backend:
@@ -352,7 +393,7 @@ jobs:
             printf '%s\n' "${STACKS[@]}"
 
             aws cloudformation deploy \
-              --template-file .circleci/cloudformation/cloudfront_infrastructure.yml \
+              --template-file .circleci/files/cloudfront.yml \
               --parameter-overrides ID="prod-${CIRCLE_WORKFLOW_ID:0:7}" \
               --stack-name udapeople-prod-cloudfront
 
