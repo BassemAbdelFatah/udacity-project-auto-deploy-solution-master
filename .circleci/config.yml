@@ -87,7 +87,7 @@ jobs:
           root: ~/
           paths:
             -  ~/project/.circleci/ansible/roles/deploy_backend/files/dist.zip
-
+ 
   test_backend:
     docker:
       - image: circleci/node:13.8.0
