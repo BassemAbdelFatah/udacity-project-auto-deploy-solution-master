@@ -1,6 +1,6 @@
 - name: Configuring newly created EC2 instances
-  hosts: all
-  remote_user: ubuntu
+  hosts: [web]
+  user: ubuntu
   become: true
   become_method: sudo
   become_user: root  
