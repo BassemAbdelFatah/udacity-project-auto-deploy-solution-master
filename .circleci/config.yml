@@ -450,7 +450,7 @@ workflows:
             - run_db_migrations_for_backend
       - deploy_Backend:
           requires:
-            - run_db_migrations_for_backend
+            - Configure_Server
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
