@@ -63,7 +63,7 @@ commands:
 jobs:
   build_frontend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -77,14 +77,10 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/frontend/dist
 
   build_backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -101,43 +97,63 @@ jobs:
  
   test_backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
-      - run: npm i --prefix backend
-      - run: npm run test --prefix backend
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Back-end Test
+          command: |
+            cd backend
+            npm install
+            npm test
 
   test_frontend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
-      - run: npm i --prefix frontend
-      - run: npm run test --prefix frontend
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: front-end test
+          command: |
+            cd frontend
+            npm install
+            npm test
 
   analyze_backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Back-end Scan
+          command: |
+            cd backend
+            npm install
 
-      - run: npm audit fix --audit-level=critical --force
-      - run: npm audit --audit-level=critical --prefix backend
+            npm audit --audit-level=critical
 
   analyze_frontend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
-      - run: npm audit fix --audit-level=critical --force
-      - run: npm audit fix --audit-level=critical --force
-      - run: npm audit --audit-level=critical --prefix frontend
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Front-end Scan
+          command: |
+            cd frontend
+            npm install
+            
+            npm audit --audit-level=critical
 
-
+        #    npm audit fix --audit-level=critical --force
   deploy_backend_infrastructure:
     docker:
       - image: amazon/aws-cli
