@@ -30,15 +30,35 @@ commands:
             fi
   
   install_ansible:
-    description: install ansible .
+    description: install ansible.
     steps:
       - run:
-          name: install ansible .
+          name: install ansible.
           command: |
             sudo apt update
             sudo apt install software-properties-common -y
             sudo add-apt-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible -y
+
+  install_awscli:
+    description: install awscli.
+    steps:
+      - run:
+          name: install awscli.
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
+  install_nodejs:
+    description: install nodejs.
+    steps:
+      - run:
+          name: install nodejs.
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -sudo apt-get install -y nodejs
+###### end of commands 
+
 
 jobs:
   build_frontend:
@@ -75,11 +95,6 @@ jobs:
             cd ~/project/backend
             npm i
             npm run build
-            cd dist
-            cp ../package.json .
-            zip -rq dist.zip *
-            mkdir -p ~/project/.circleci/ansible/roles/deploy_backend/files/
-            mv dist.zip ~/project/.circleci/ansible/roles/deploy_backend/files/
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -201,13 +216,13 @@ jobs:
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 #############################################################################
-
-  deploy_backend_artifact:
+  Configure_Server:
     docker:
       - image: cimg/base:stable
     steps:
       - checkout
       - install_ansible
+      - install_awscli
       - add_ssh_keys:
           fingerprints: ["b3:0e:47:83:13:96:58:60:ea:3c:1d:cd:7b:67:aa:ef"]
       - attach_workspace:
@@ -221,21 +236,31 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
 
-
-  deploy_frontend_artifact:
+  deploy_frontend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
       - checkout
+      - install_awscli
+      - install_nodejs
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Install dependencies
           command: |
-            apk add --update curl tar
-            pip install awscli
-      - attach_workspace:
-          at: ~/
+            cd front-end
+            npm install
       - run:
-          name: Copy frontend to s3 bucket.
+          name: Get backend url
+          command: |
+            BACKEND_AWS_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo "API_URL=http://${BACKEND_AWS_PUBLIC_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
           command: |
             cd ~/project/frontend
             aws s3 cp dist s3://udapeople-prod-${CIRCLE_WORKFLOW_ID:0:7} --recursive
@@ -358,7 +383,10 @@ workflows:
       - run_db_migrations_for_backend:
           requires:
             - deploy_backend_infrastructure
-      - deploy_backend_artifact:
+      - Configure_Server:
+          requires:
+            - run_db_migrations_for_backend
+      - deploy_frontend:
           requires:
             - run_db_migrations_for_backend
       # - package_frontend_artifact:
