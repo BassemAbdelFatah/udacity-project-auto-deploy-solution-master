@@ -315,7 +315,7 @@ jobs:
           name: Deploy Back-end
           command: |
             export TYPEORM_MIGRATIONS_DIR=./migrations
-            export TYPEORM_ENTITIES=./modules/domain/**/*.entity(.ts,.js)
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity.ts
             export TYPEORM_MIGRATIONS=./migrations/*.ts
 
             cd .circleci/ansible
@@ -451,6 +451,7 @@ workflows:
       - deploy_Backend:
           requires:
             - run_db_migrations_for_backend
+            
       # - package_frontend_artifact:
       #     requires:
       #       - deploy_frontend_infrastructure
