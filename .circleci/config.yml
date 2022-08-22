@@ -441,10 +441,10 @@ workflows:
               only: [ main ]
       - Configure_Server:
           requires:
-            - deploy_backend_infrastructure
+            - run_db_migrations_for_backend
       - run_db_migrations_for_backend:
           requires:
-            - Configure_Server
+          - deploy_backend_infrastructure
       - deploy_frontend:
           requires:
             - run_db_migrations_for_backend
