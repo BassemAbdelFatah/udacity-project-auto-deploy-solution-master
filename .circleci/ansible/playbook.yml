@@ -31,8 +31,6 @@
     ansible_host_key_checking: false
     ansible_stdout_callback: yaml
     environment_config:
-      NODE_ENV: production
-      ENVIRONMENT: production
       TYPEORM_CONNECTION: postgres
       TYPEORM_ENTITIES: /root/backend_app/modules/domain/**/*.entity.js
       TYPEORM_HOST: "{{ lookup('env','TYPEORM_HOST') }}"
