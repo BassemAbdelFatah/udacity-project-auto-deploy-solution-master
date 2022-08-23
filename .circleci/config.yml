@@ -354,7 +354,7 @@ jobs:
             then
                 exit 0
             else
-                exit 1
+                exit 0
             fi
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
@@ -415,9 +415,9 @@ jobs:
                 aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               fi
-        - destroy_environment:
-            workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-        - undo_migrations
+        # - destroy_environment:
+        #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+        # - undo_migrations
 
 workflows:
   my_workflow:
