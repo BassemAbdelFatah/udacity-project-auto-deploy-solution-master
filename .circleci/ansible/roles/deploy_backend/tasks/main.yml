@@ -1,24 +1,34 @@
 
 - name: "Creates backend app directory"
   file:
-    path: /home/ubuntu/backend_app
+    path: ~/backend_app
     state: directory
 
 - name: "Unzip backend files to correct directory"
   unarchive: 
     src: artifact.tar.gz
-    dest: /home/ubuntu/backend_app
+    dest: ~/backend_app
 
 - name: "Install dependencies for project"
   shell: |
-    cd /home/ubuntu/backend_app
+    cd ~/backend_app
     npm i
 
-- name: "Executing node"
+- name:  start app
   command:  pm2 start main.js
   args:
-    chdir: /home/ubuntu/backend_app/dist
-  register: execute_node
+    chdir: ~/backend/dist
+  environment:
+      ENVIRONMENT: production
+      TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
+      TYPEORM_MIGRATIONS_DIR: "./migrations"
+      TYPEORM_MIGRATIONS: "./migrations/*.js"
+      TYPEORM_ENTITIES: "./modules/domain/**/*.entity.js"
+      TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
+      TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
+      TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
+      TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+      TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"
 
 - name: print message
   debug:
