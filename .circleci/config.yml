@@ -176,7 +176,7 @@ jobs:
               --output text)
             echo "[all]" >> .circleci/ansible/inventory.txt
             echo "$BACKEND_AWS_PUBLIC_IP" >> .circleci/ansible/inventory.txt
-      # - run: yum -y install tar gzip
+      - run: yum -y install tar gzip
       - run:
           name: Deploy the frontend infrastructure using cloudformation
           command: |
@@ -436,6 +436,8 @@ workflows:
           requires:
             - analyze_backend
             - analyze_frontend
+            - test_frontend
+            - test_backend
           filters:
             branches:
               only: [ main ]

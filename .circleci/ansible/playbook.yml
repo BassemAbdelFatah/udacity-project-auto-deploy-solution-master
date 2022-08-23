@@ -21,9 +21,7 @@
       changed_when: false
   roles:
     - role: setup
-      become: true
     - role: configure_node_exporter
-      become: true
     # - role: weareinteractive.environment
     #   become: true
 
