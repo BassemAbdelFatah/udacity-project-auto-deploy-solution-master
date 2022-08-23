@@ -375,7 +375,6 @@ jobs:
     steps:
       - checkout
       - install_awscli
-      # - install_nodejs
       - run:
           name: save old workflow ID.
           command: |
@@ -397,6 +396,31 @@ jobs:
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
+
+cleanup:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - install_awscli
+      - run:
+          name: Get old workflow ID.
+          command: |
+            export OldWorkflowID=`.circleci/ansible/oldwork.txt`
+            echo $OldWorkflowID
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+      - run:
+          name: Remove old stacks and files
+          command: |
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
 
 workflows:
   my_workflow:
@@ -447,5 +471,5 @@ workflows:
           requires: [deploy_frontend,deploy_Backend]
       - cloudfront_update:
           requires: [smoke_test_backend,smoke_test_frontend]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cleanup:
+          requires: [cloudfront_update]
