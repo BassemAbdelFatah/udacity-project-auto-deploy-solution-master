@@ -370,7 +370,8 @@ jobs:
             export OLD_WORKFLOW_ID=$(aws cloudformation \
                       list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                       --no-paginate --output text)
-            curl https://kvdb.io/${KVDB_BUCKET}/old_workflow_id -d "${OLD_WORKFLOW_ID}"
+            echo "$OLD_WORKFLOW_ID" >> .circleci/ansible/oldwork.txt
+#            curl https://kvdb.io/${KVDB_BUCKET}/old_workflow_id -d "${OLD_WORKFLOW_ID}"
       - persist_to_workspace:
           root: ~/
           paths:
@@ -398,7 +399,7 @@ jobs:
         - run:
             name: Get old workflow ID.
             command: |
-              export OldWorkflowID=`cat .circleci/ansible/oldwork.txt`
+              export OldWorkflowID=`cat oldwork.txt`
               echo $OldWorkflowID
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
