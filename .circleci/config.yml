@@ -240,7 +240,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Setup EC2 instance & copy compiled backend to the EC2 instance
+          name: Setup and configure EC2 instance
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt playbook.yml
@@ -332,7 +332,7 @@ jobs:
       - run:
           name: Frontend Smoke test.
           command: |
-            URL="https://udapeople-prod-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html#/employees"            
+            URL="https://udapeople-prod-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html#/employees"
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
