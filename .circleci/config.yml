@@ -354,7 +354,7 @@ jobs:
             then
                 exit 0
             else
-                exit 0
+                exit 1
             fi
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
@@ -373,12 +373,7 @@ jobs:
             export OLD_WORKFLOW_ID=$(aws cloudformation \
                       list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                       --no-paginate --output text)
-            echo "$OLD_WORKFLOW_ID" >> .circleci/ansible/oldwork.txt
-#            curl https://kvdb.io/${KVDB_BUCKET}/old_workflow_id -d "${OLD_WORKFLOW_ID}"
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/oldwork.txt
+            curl https://kvdb.io/${KVDB_BUCKET}/old_workflow_id -d "${OLD_WORKFLOW_ID}"
       - run:
           name: Update cloudfront distribution
           command: |
@@ -395,29 +390,26 @@ jobs:
         - image: cimg/base:stable
       steps:
         - checkout
-        - attach_workspace:
-            at: ~/
         - install_awscli
         - install_nodejs
         - run:
             name: Get old workflow ID.
             command: |
-              export OldWorkflowID=`cat oldwork.txt`
-              echo $OldWorkflowID
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-        - run:
-            name: Remove old stacks and files
-            command: |
+              echo "${STACKS[@]}"
+
+              export OldWorkflowID= $(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
+              echo OLD workflow ID: $OldWorkflowID
               if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
               then
                 aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
                 aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               fi
-        # - destroy_environment:
-        #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-        # - undo_migrations
+        - destroy_environment:
+            workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+        - undo_migrations
 
 workflows:
   my_workflow:
