@@ -318,7 +318,7 @@ jobs:
             echo $TYPEORM_ENTITIES
             echo $TYPEORM_MIGRATIONS
             
-
+            
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
