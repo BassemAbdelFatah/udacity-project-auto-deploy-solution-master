@@ -155,7 +155,7 @@ jobs:
             npm audit --audit-level=critical
 
 
-  deploy_backend_infrastructure:
+  deploy_infrastructure:
     docker:
       - image: amazon/aws-cli
     steps:
@@ -176,19 +176,7 @@ jobs:
               --output text)
             echo "[all]" >> .circleci/ansible/inventory.txt
             echo "$BACKEND_AWS_PUBLIC_IP" >> .circleci/ansible/inventory.txt
-      - run: yum -y install tar gzip
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
-      - destroy_environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-
-  deploy_frontend_infrastructure:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
+      # - run: yum -y install tar gzip
       - run:
           name: Deploy the frontend infrastructure using cloudformation
           command: |
@@ -196,6 +184,10 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --parameter-overrides ID="prod-${CIRCLE_WORKFLOW_ID:0:7}" \
               --stack-name udapeople-frontend-prod-${CIRCLE_WORKFLOW_ID:0:7}
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
@@ -224,10 +216,6 @@ jobs:
             else
                 echo "failed"
             fi
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/outputs/
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
@@ -444,14 +432,7 @@ workflows:
       - analyze_frontend:
           requires:
             - build_frontend
-      - deploy_backend_infrastructure:
-          requires:
-            - analyze_backend
-            - analyze_frontend
-          filters:
-            branches:
-              only: [ main ]
-      - deploy_frontend_infrastructure:
+      - deploy_infrastructure:
           requires:
             - analyze_backend
             - analyze_frontend
@@ -463,7 +444,7 @@ workflows:
             - run_db_migrations_for_backend
       - run_db_migrations_for_backend:
           requires:
-          - deploy_backend_infrastructure
+          - deploy_infrastructure
       - deploy_frontend:
           requires:
             - run_db_migrations_for_backend
