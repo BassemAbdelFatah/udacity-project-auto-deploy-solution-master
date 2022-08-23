@@ -13,7 +13,7 @@
 - name: "Install Node.JS 13"
   become: true
   apt:
-    name: ["node.js","npm"]
+    name: ["nodejs","npm"]
     state: present
     update_cache: yes
 
