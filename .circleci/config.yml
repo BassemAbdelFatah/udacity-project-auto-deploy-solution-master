@@ -408,7 +408,7 @@ jobs:
         - run:
             name: Get old workflow ID.
             command: |
-              export OldWorkflowID=`.circleci/ansible/oldwork.txt`
+              export OldWorkflowID=`cat .circleci/ansible/oldwork.txt`
               echo $OldWorkflowID
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
