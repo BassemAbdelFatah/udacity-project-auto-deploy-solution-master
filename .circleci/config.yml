@@ -174,15 +174,12 @@ jobs:
               --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text)
-            echo "http://$BACKEND_AWS_PUBLIC_IP:3030" >> .circleci/outputs/backend_url.txt
             echo "[all]" >> .circleci/ansible/inventory.txt
             echo "$BACKEND_AWS_PUBLIC_IP" >> .circleci/ansible/inventory.txt
-            cat .circleci/outputs/backend_url.txt
       - run: yum -y install tar gzip
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/outputs/backend_url.txt
             - project/.circleci/ansible/inventory.txt
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
@@ -268,7 +265,10 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            BACKEND_AWS_PUBLIC_IP=`cat .circleci/outputs/backend_url.txt`
+            BACKEND_AWS_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
             echo "API_URL=http://${BACKEND_AWS_PUBLIC_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
@@ -312,7 +312,7 @@ jobs:
           name: Deploy Back-end
           command: |
             export TYPEORM_MIGRATIONS_DIR=./migrations
-            export TYPEORM_ENTITIES=./modules/domain/**/*.entity.ts
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
             export TYPEORM_MIGRATIONS=./migrations/*.ts
 
             cd .circleci/ansible
@@ -332,7 +332,7 @@ jobs:
       - run:
           name: Frontend Smoke test.
           command: |
-            URL="http://udapeople-prod-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            URL="https://udapeople-prod-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html#/employees"            
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
@@ -351,9 +351,13 @@ jobs:
       - run:
           name: Backend Smoke test.
           command: |
-            API_URL=`cat .circleci/outputs/backend_url.txt`
+            BACKEND_AWS_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            API_URL="http://${BACKEND_AWS_PUBLIC_IP}:3030/api/status"
             echo "${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
+            if curl -s "${API_URL}" | grep "ok"
             then
                 return 0
             else
