@@ -203,8 +203,6 @@ jobs:
           command: |
             cd backend
             npm install
-            npm i
-            npm run migration:revert
             npm run migrations > migration_output.txt
             cat migration_output.txt
       - run:
@@ -218,8 +216,6 @@ jobs:
             else
                 echo "failed"
             fi
-      - destroy_environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   Configure_Server:
     docker:
@@ -262,6 +258,7 @@ jobs:
               --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text)
+
             echo "API_URL=http://${BACKEND_AWS_PUBLIC_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
@@ -292,7 +289,7 @@ jobs:
           name: Install dependencies
           command: |
             cd backend
-            npm i
+            npm install
       - run: 
           name: Package Back-end
           command: |
@@ -304,6 +301,10 @@ jobs:
       - run: 
           name: Deploy Backend
           command: |
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
