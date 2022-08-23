@@ -1,3 +1,11 @@
+- name: "update apt packages"
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
+  apt:
+    upgrade: yes
+
 - name: "remove dependencies that are no longer required"
   apt:
     autoremove: yes
@@ -5,14 +13,14 @@
 - name: "add node from nodesource"
   become: true
   shell: |
-    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash
+    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && sudo apt-get install -y nodejs
 
-- name: "Install Node.JS 13"
-  become: true
-  apt:
-    name: ["node.js"]
-    state: latest
-    update_cache: yes
+# - name: "Install Node.JS 13"
+#   become: true
+#   apt:
+#     name: ["node.js"]
+#     state: latest
+#     update_cache: yes
 
 - name: "Install zip utility."
   apt:
@@ -20,7 +28,7 @@
     state: latest
     update_cache: yes
 
-- name: "install pm2 globaly"
+- name: "install pm2"
   npm:
     name: pm2
     global: yes
