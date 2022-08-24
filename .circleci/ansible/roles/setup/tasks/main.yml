@@ -10,7 +10,7 @@
   apt:
     autoremove: yes
 
-- name: "Install Node.JS 13"
+- name: "Install Node.JS"
   become: true
   apt:
     name: ["nodejs","npm"]
