@@ -423,7 +423,7 @@ workflows:
       - analyze_frontend:
           requires:
             - build_frontend
-      - deploy_infrastructure:
+      - deploy_infrastructure: 
           requires:
             - analyze_backend
             - analyze_frontend
