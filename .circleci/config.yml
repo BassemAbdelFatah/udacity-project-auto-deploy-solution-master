@@ -368,13 +368,6 @@ jobs:
       - install_awscli
       - install_nodejs
       - run:
-          name: save old workflow ID.
-          command: |
-            export OLD_WORKFLOW_ID=$(aws cloudformation \
-                      list-exports --query "Exports[?Name==\`UdapeopleWorkflowID\`].Value" \
-                      --no-paginate --output text)
-            curl  https://kvdb.io/${KVDB_BUCKET}/old_workflow_id -d "${OLD_WORKFLOW_ID}"
-      - run:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
@@ -398,8 +391,11 @@ jobs:
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
               echo "${STACKS[@]}"
-              export OldWorkflowID= $(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
-              echo OLD workflow ID: $OldWorkflowID
+
+              export OldWorkflowID=$(aws cloudformation \
+                      list-exports --query "Exports[?Name==\`UdapeopleWorkflowID\`].Value" \
+                      --no-paginate --output text)
+              echo "$OldWorkflowID"
               if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
               then
                 aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
