@@ -259,7 +259,11 @@ jobs:
               --output text)
 
             echo "API_URL=http://${BACKEND_AWS_PUBLIC_IP}:3030" >> frontend/.env
-            cat frontend/.env
+            echo $(cat frontend/.env)
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/frontend/.env
       - run:
           name: Deploy frontend objects
           command: |
