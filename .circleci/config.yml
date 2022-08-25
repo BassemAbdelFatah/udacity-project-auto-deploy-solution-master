@@ -367,7 +367,7 @@ jobs:
       - install_awscli
       - install_nodejs
       - run:
-          name: Update cloudfront distribution
+          name: Store old WorkFlow ID.
           command: |
               export OldWorkflowID=$(aws cloudformation \
                       list-exports --query "Exports[?Name==\`UdapeopleWorkflowID\`].Value" \
