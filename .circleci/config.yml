@@ -464,5 +464,3 @@ workflows:
           requires: [smoke_test_backend,smoke_test_frontend]
       - cleanup:
           requires: [cloudfront_update]
-
-#prod-e8026f6
