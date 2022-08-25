@@ -388,7 +388,6 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/files/oldworkflowid.txt
-
       - destroy_environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - undo_migrations
