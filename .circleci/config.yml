@@ -329,7 +329,7 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 0
+              exit 1
             else
               exit 1
             fi
@@ -456,7 +456,7 @@ workflows:
           requires:
             - Configure_Server
       - smoke_test_frontend:
-          requires: [deploy_frontend,deploy_Backend]
+          requires: [deploy_frontend]
       - smoke_test_backend:
           requires: [deploy_frontend,deploy_Backend]
       - cloudfront_update:
